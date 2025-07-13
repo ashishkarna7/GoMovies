@@ -22,11 +22,15 @@ struct GoMoviesApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+    
+    @State var movieProvider = MovieProvider()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Movies()
+                .environment(movieProvider)
         }
         .modelContainer(sharedModelContainer)
+        
     }
 }

@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		1833B8602E2414D80018764F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 1833B85F2E2414D80018764F /* README.md */; };
+		1833B8682E2415040018764F /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 1833B8672E2415040018764F /* LICENSE */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1833B8322E2412ED0018764F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		1833B8222E2412EB0018764F /* GoMovies.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GoMovies.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1833B8312E2412ED0018764F /* GoMoviesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GoMoviesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1833B83B2E2412ED0018764F /* GoMoviesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GoMoviesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1833B85F2E2414D80018764F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		1833B8672E2415040018764F /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +82,8 @@
 		1833B8192E2412EB0018764F = {
 			isa = PBXGroup;
 			children = (
+				1833B85F2E2414D80018764F /* README.md */,
+				1833B8672E2415040018764F /* LICENSE */,
 				1833B8242E2412EB0018764F /* GoMovies */,
 				1833B8342E2412ED0018764F /* GoMoviesTests */,
 				1833B83E2E2412ED0018764F /* GoMoviesUITests */,
@@ -212,6 +221,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1833B8682E2415040018764F /* LICENSE in Resources */,
+				1833B8602E2414D80018764F /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
