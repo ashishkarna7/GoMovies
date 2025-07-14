@@ -10,9 +10,6 @@ import SwiftUI
 struct Movies: View {
     @Environment(MovieProvider.self) var provider
     
-    @State private var error: MovieError?
-    @State private var hasError = false
-    
     var body: some View {
         NavigationSplitView {
             List {
@@ -33,12 +30,7 @@ struct Movies: View {
     }
     
     func fetchMovies() async {
-        do {
-            try await provider.fetchMovies()
-        } catch {
-            self.error = error as? MovieError ?? .unexpectedError(error: error)
-            hasError = true
-        }
+         await provider.searchMovie(query: "a")
     }
 }
 
