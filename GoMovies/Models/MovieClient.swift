@@ -26,14 +26,13 @@ actor MovieClient {
     }
     
     func searchMovie(query: String, page: Int) async throws -> MovieSearchResult {
-        var urlComponent = URLComponents(url: baseURL.appending(path: "search/movie"), resolvingAgainstBaseURL: false)
+        let url = buildUrl(path: "search/movie",
+                                 queryItems: [.init(name: "query", value: query),
+                                              .init(name: "include_adult", value: "false"),
+                                              .init(name: "language", value: "en-US"),
+                                              .init(name: "page", value: "\(page)")])
         
-        urlComponent?.queryItems = [.init(name: "query", value: query),
-                                    .init(name: "include_adult", value: "false"),
-                                    .init(name: "language", value: "en-US"),
-                                    .init(name: "page", value: "\(page)")]
-        
-        guard let url = urlComponent?.url else {
+        guard let url else {
             throw MovieError.invalidRequest
         }
         
@@ -48,12 +47,7 @@ actor MovieClient {
     }
     
     func movie(id: Int) async throws -> Movie {
-        
-        let urlComponent = URLComponents(url: baseURL.appending(path: "movie/\(id)"), resolvingAgainstBaseURL: false)
-        
-        guard let url = urlComponent?.url else {
-            throw MovieError.invalidRequest
-        }
+        let url = baseURL.appending(path: "moview/\(id)")
         
         if let cached = movieCache[url] {
             switch cached {
@@ -78,5 +72,11 @@ actor MovieClient {
         movieCache[url] = .inProgress(task)
 
         return try await task.value
+    }
+    
+    private func buildUrl(path: String, queryItems: [URLQueryItem]) -> URL? {
+        var urlComponent = URLComponents(url: baseURL.appending(path: path), resolvingAgainstBaseURL: false)
+        urlComponent?.queryItems = queryItems
+       return urlComponent?.url
     }
 }
