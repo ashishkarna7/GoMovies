@@ -16,10 +16,22 @@ actor MovieClient {
 
     private var decoder: JSONDecoder = {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .millisecondsSince1970
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return decoder
     }()
+    
+    var searchResult: MovieSearchResult {
+        get async throws {
+            let data = try await downloader.httpData(from: baseURL)
+            
+            do {
+                let movieSearchResult = try decoder.decode(MovieSearchResult.self, from: data)
+                return movieSearchResult
+            } catch {
+                throw MovieError.decodingError
+            }
+        }
+    }
     
     init(downloader: any HttpDataDownloader = URLSession.shared) {
         self.downloader = downloader
@@ -35,7 +47,7 @@ actor MovieClient {
         guard let url else {
             throw MovieError.invalidRequest
         }
-        
+
         let data = try await downloader.httpData(from: url)
         
         do {

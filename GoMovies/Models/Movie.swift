@@ -8,15 +8,32 @@
 import Foundation
 
 struct MovieSearchResult: Decodable {
-    let page: Int
     let results: [Movie]
     let totalPages: Int
-    let totalResults: Int
 }
 
 struct Movie: Identifiable, Decodable {
     let id: Int
     let title: String
+    let releaseDate: String?
+    private let posterPath: String?
+    
+//    var date: Date {
+////        guard let releaseDate else { return nil }
+//        let formatter = DateFormatter()
+//        formatter.dateFormat = "yyyy-MM-dd"
+//        return formatter.date(from: releaseDate) ?? Date()
+//    }
+    
+    var posterURL: URL? {
+        guard let posterPath else { return nil }
+        let url = URL(string: AppConstant.imageBaseURL + posterPath)
+        return url
+    }
+}
+
+extension Movie {
+    static let staticData = Movie(id: 0, title: "Interstellar", releaseDate: "2014-11-05", posterPath: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg")
 }
 
 //{
