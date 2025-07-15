@@ -27,8 +27,10 @@ struct GoMoviesApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Movies()
-                .environment(movieProvider)
+            NavigationStack {
+                SearchMoviesView()
+            }
+            .environment(movieProvider)
         }
         .modelContainer(sharedModelContainer)
         

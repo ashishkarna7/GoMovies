@@ -12,7 +12,8 @@ import Observation
 class MovieProvider {
     
     var movies: [Movie] = []
-    var isLoading = false
+    var
+    isLoading = false
     var error: MovieError?
     
     var currentQuery: String = ""
@@ -27,7 +28,7 @@ class MovieProvider {
     
     func searchMovie(query: String) async {
         guard !query.isEmpty else {
-            reset()
+//            reset()
             return
         }
         
@@ -46,7 +47,9 @@ class MovieProvider {
             movies.append(contentsOf: result.results)
             totalPages = result.totalPages
             currentPage += 1
+            isLoading = false
         } catch {
+            isLoading = false
             self.error = error as? MovieError ?? .unexpectedError(error: error)
         }
     }
