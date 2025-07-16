@@ -59,7 +59,7 @@ actor MovieClient {
     }
     
     func movie(id: Int) async throws -> Movie {
-        let url = baseURL.appending(path: "moview/\(id)")
+        let url = baseURL.appending(path: "movie/\(id)")
         
         if let cached = movieCache[url] {
             switch cached {

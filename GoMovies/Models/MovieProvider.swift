@@ -12,9 +12,9 @@ import Observation
 class MovieProvider {
     
     var movies: [Movie] = []
-    var
-    isLoading = false
+    var isLoading = false
     var error: MovieError?
+    var selectedMovie: Movie?
     
     var currentQuery: String = ""
     var currentPage: Int = 1
@@ -47,11 +47,10 @@ class MovieProvider {
             movies.append(contentsOf: result.results)
             totalPages = result.totalPages
             currentPage += 1
-            isLoading = false
         } catch {
-            isLoading = false
             self.error = error as? MovieError ?? .unexpectedError(error: error)
         }
+        isLoading = false
     }
     
     func reset() {
