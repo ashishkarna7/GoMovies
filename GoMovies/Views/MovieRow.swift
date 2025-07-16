@@ -18,6 +18,7 @@ struct MovieRow: View {
                         Rectangle()
                             .fill(.gray.opacity(0.3))
                             .frame(width: 60, height: 90)
+                            .cornerRadius(6)
                             .overlay {
                                 ProgressView()
                             }
@@ -32,6 +33,7 @@ struct MovieRow: View {
                         Rectangle()
                             .fill(.gray.opacity(0.3))
                             .frame(width: 60, height: 90)
+                            .cornerRadius(6)
                             .overlay {
                                 Image(systemName: "photo.fill")
                                     .font(.largeTitle)
