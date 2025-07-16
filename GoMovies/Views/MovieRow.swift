@@ -15,8 +15,12 @@ struct MovieRow: View {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
-                        ProgressView()
+                        Rectangle()
+                            .fill(.gray.opacity(0.3))
                             .frame(width: 60, height: 90)
+                            .overlay {
+                                ProgressView()
+                            }
                     case .success(let image):
                         image
                             .resizable()
@@ -25,8 +29,14 @@ struct MovieRow: View {
                             .clipped()
                             .cornerRadius(6)
                     case .failure:
-                        Image(systemName: "photo")
+                        Rectangle()
+                            .fill(.gray.opacity(0.3))
                             .frame(width: 60, height: 90)
+                            .overlay {
+                                Image(systemName: "photo.fill")
+                                    .font(.largeTitle)
+                                    .foregroundStyle(.white)
+                            }
                     @unknown default:
                         EmptyView()
                     }

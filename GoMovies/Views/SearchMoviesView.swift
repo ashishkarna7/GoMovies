@@ -19,13 +19,13 @@ struct SearchMoviesView: View {
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, alignment: .center)
             } else if let error = provider.error {
-                Text(error.errorDescription ?? "")
+                ErrorView(error: error)
             } else {
                 List(selection: $selection) {
                     Section("Movies") {
                         ForEach(provider.movies) { movie in
                             NavigationLink(destination: {
-                                Text("Item at \(movie.title)")
+                                MovieDetailView(provider: MovieDetailProvider(movieId: movie.id))
                             }, label: {
                                 MovieRow(movie: movie)
                             })
@@ -35,6 +35,7 @@ struct SearchMoviesView: View {
             }
         }
         .navigationTitle("Search Movies")
+//        .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
         .onChange(of: searchText) {(_,newValue) in
             Task {
