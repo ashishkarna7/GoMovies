@@ -14,7 +14,8 @@ class MovieProvider {
     private(set) var movies: [Movie] = []
     private(set) var isSearching = false
     private(set) var isFetchingDetail = false
-    private(set) var error: MovieError?
+    var error: MovieError?
+    var isErrorActive = false
     var selectedMovie: Movie?
     
     private(set) var currentQuery: String = ""
@@ -44,7 +45,8 @@ class MovieProvider {
         defer {
             isSearching = false
         }
-        error = nil
+        
+        clearError()
         
         do {
             let result = try await client.searchMovie(query: currentQuery, page: currentPage)
@@ -53,6 +55,7 @@ class MovieProvider {
             currentPage += 1
         } catch {
             self.error = error as? MovieError ?? .unexpectedError(error: error)
+            isErrorActive = true
         }
         
     }
@@ -61,6 +64,11 @@ class MovieProvider {
         movies = []
         currentPage = 1
         totalPages = 1
+    }
+    
+    func clearError() {
+        isErrorActive = false
+        error = nil
     }
     
     func setSelectedMovie(movie: Movie) {
@@ -75,13 +83,14 @@ class MovieProvider {
         defer {
             isFetchingDetail = false
         }
-        error = nil
+        clearError()
         
         do {
             let fetchedMovie = try await client.movie(id: selectedMovie.id)
             self.selectedMovie = fetchedMovie
         } catch {
             self.error = error as? MovieError ?? .unexpectedError(error: error)
+            self.isErrorActive = true
         }
 
     }

@@ -10,15 +10,11 @@ import Foundation
 let validStatus = 200...299
 
 protocol HttpDataDownloader: Sendable {
-    func httpData(from: URL) async throws -> Data
+    func httpData(from: URLRequest) async throws -> Data
 }
 
 extension URLSession: HttpDataDownloader {
-    func httpData(from url: URL) async throws -> Data {
-        var urlRequest = URLRequest(url: url)
-        
-        urlRequest.addValue("Bearer \(AppConstant.bearerToken)",
-                            forHTTPHeaderField: "Authorization")
+    func httpData(from urlRequest: URLRequest) async throws -> Data {
         
         let (data, response) = try await self.data(for: urlRequest, delegate: nil)
         

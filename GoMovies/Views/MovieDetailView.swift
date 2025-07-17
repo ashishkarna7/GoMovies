@@ -16,8 +16,6 @@ struct MovieDetailView: View {
         VStack {
             if provider.isFetchingDetail {
                 ProgressView("Loading...")
-            } else if let error = provider.error {
-                ErrorView(error: error)
             } else if let movie = provider.selectedMovie {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
@@ -67,6 +65,21 @@ struct MovieDetailView: View {
                                 .font(.body)
                         }
                         .padding(.horizontal)
+                    }
+                }
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if let error = provider.error {
+                ErrorView(error: error)
+            }
+        }
+        .onChange(of: provider.isErrorActive) {_, newValue in
+            if newValue {
+                Task {
+                    try? await Task.sleep(for: .seconds(1))
+                    withAnimation {
+                        provider.clearError()
                     }
                 }
             }

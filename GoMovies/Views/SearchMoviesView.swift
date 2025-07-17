@@ -14,38 +14,39 @@ struct SearchMoviesView: View {
     @State private var selection: Set<String> = []
     
     var body: some View {
-        List(selection: $selection) {
-            Section("Movies") {
-                ForEach(provider.movies) { movie in
-                    NavigationLink(destination: {
-                        MovieDetailView(movieId: movie.id)
-                    }, label: {
-                        MovieRow(movie: movie)
-                    })
-                }
-                
-                if !provider.movies.isEmpty,
-                    provider.currentPage <= provider.totalPages {
-                    Color.clear
-                        .frame(height: 1)
-                        .onAppear {
-                            Task {
-                                await provider.searchMovie(query: searchText)
-                            }
-                        }
-                }
-            }
-        }
-        .overlay {
+        VStack {
             if provider.isSearching, provider.movies.isEmpty {
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, alignment: .center)
-            } else if let error = provider.error {
-                ErrorView(error: error)
+            } else {
+                List(selection: $selection) {
+                    Section("Movies") {
+                        ForEach(provider.movies) { movie in
+                            NavigationLink(destination: {
+                                MovieDetailView(movieId: movie.id)
+                            }, label: {
+                                MovieRow(movie: movie)
+                            })
+                        }
+                        
+                        if !provider.movies.isEmpty,
+                            provider.currentPage <= provider.totalPages {
+                            Color.clear
+                                .frame(height: 1)
+                                .onAppear {
+                                    Task {
+                                        await provider.searchMovie(query: searchText)
+                                    }
+                                }
+                        }
+                    }
+                }
             }
         }
         .overlay(alignment: .bottom) {
-            if provider.isSearching, !provider.movies.isEmpty {
+            if let error = provider.error {
+                ErrorView(error: error)
+            } else if provider.isSearching, !provider.movies.isEmpty {
                 ProgressView()
                     .padding()
                     .background(.thinMaterial, in: Capsule())
@@ -57,6 +58,16 @@ struct SearchMoviesView: View {
         .onChange(of: searchText) {(_,newValue) in
             Task {
                 await provider.searchMovie(query: newValue)
+            }
+        }
+        .onChange(of: provider.isErrorActive) { _, newValue in
+            if newValue {
+                Task {
+                    try await Task.sleep(for: .seconds(1))
+                    withAnimation {
+                        provider.clearError()
+                    }
+                }
             }
         }
         .refreshable {
