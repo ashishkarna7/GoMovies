@@ -15,11 +15,11 @@ class MovieProvider {
     private(set) var isSearching = false
     private(set) var isFetchingDetail = false
     private(set) var error: MovieError?
-    private(set) var selectedMovie: Movie?
+    var selectedMovie: Movie?
     
-    private var currentQuery: String = ""
-    private var currentPage: Int = 1
-    private var totalPages: Int = 1
+    private(set) var currentQuery: String = ""
+    private(set) var currentPage: Int = 1
+    private(set) var totalPages: Int = 1
     
     private let client: MovieClient
     

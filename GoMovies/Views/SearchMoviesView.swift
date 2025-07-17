@@ -14,25 +14,42 @@ struct SearchMoviesView: View {
     @State private var selection: Set<String> = []
     
     var body: some View {
-        VStack {
-            if provider.isSearching {
+        List(selection: $selection) {
+            Section("Movies") {
+                ForEach(provider.movies) { movie in
+                    NavigationLink(destination: {
+                        MovieDetailView(movieId: movie.id)
+                    }, label: {
+                        MovieRow(movie: movie)
+                    })
+                }
+                
+                if !provider.movies.isEmpty,
+                    provider.currentPage <= provider.totalPages {
+                    Color.clear
+                        .frame(height: 1)
+                        .onAppear {
+                            Task {
+                                await provider.searchMovie(query: searchText)
+                            }
+                        }
+                }
+            }
+        }
+        .overlay {
+            if provider.isSearching, provider.movies.isEmpty {
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, alignment: .center)
             } else if let error = provider.error {
                 ErrorView(error: error)
-            } else {
-                List(selection: $selection) {
-                    Section("Movies") {
-                        ForEach(provider.movies) { movie in
-                            NavigationLink(destination: {
-                                MovieDetailView(movieId: movie.id)
-                                    .environment(provider)
-                            }, label: {
-                                MovieRow(movie: movie)
-                            })
-                        }
-                    }
-                }
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if provider.isSearching, !provider.movies.isEmpty {
+                ProgressView()
+                    .padding()
+                    .background(.thinMaterial, in: Capsule())
+                    .padding(.bottom)
             }
         }
         .navigationTitle("Search Movies")
@@ -48,6 +65,7 @@ struct SearchMoviesView: View {
             }
         }
     }
+    
 }
 
 #Preview {

@@ -89,13 +89,9 @@ struct MovieDetailView: View {
 #Preview {
     let client = MovieClient(downloader: TestDownloader())
     let provider = MovieProvider(client: client)
+    provider.selectedMovie = Movie.staticData
     let view = MovieDetailView(movieId: Movie.staticData.id)
         .environment(provider)
-        
-    Task {
-        await provider.getMovieDetail(movieId: Movie.staticData.id)
-    }
-    
     return view
 }
 
