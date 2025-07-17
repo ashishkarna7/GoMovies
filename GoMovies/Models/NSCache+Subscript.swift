@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 extension NSCache where KeyType == NSString, ObjectType == CacheEntryObject {
     subscript(_ url: URL) -> CacheEntry? {

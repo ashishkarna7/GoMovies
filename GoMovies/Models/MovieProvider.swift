@@ -22,6 +22,10 @@ class MovieProvider {
     private(set) var currentPage: Int = 1
     private(set) var totalPages: Int = 1
     
+    var favoriteData: [String: Bool] = [:]
+    
+    private let keyFavorite = "key_favorite"
+    
     private let client: MovieClient
     
     init(client: MovieClient = MovieClient()) {
@@ -29,10 +33,6 @@ class MovieProvider {
     }
     
     func searchMovie(query: String) async {
-        guard !query.isEmpty else {
-//            reset()
-            return
-        }
         
         if currentQuery != query {
             reset()
@@ -40,7 +40,7 @@ class MovieProvider {
         }
         
         guard !isSearching, currentPage <= totalPages else { return }
-    
+        
         isSearching = true
         defer {
             isSearching = false
@@ -70,15 +70,9 @@ class MovieProvider {
         isErrorActive = false
         error = nil
     }
-    
-    func setSelectedMovie(movie: Movie) {
-        self.selectedMovie = movie
-    }
+
     
     func getMovieDetail(movieId: Int) async {
-        self.selectedMovie = movies.first(where: {$0.id == movieId })
-        guard let selectedMovie else { return }
-        
         isFetchingDetail = true
         defer {
             isFetchingDetail = false
@@ -86,13 +80,31 @@ class MovieProvider {
         clearError()
         
         do {
-            let fetchedMovie = try await client.movie(id: selectedMovie.id)
+            let fetchedMovie = try await client.movie(id: movieId)
             self.selectedMovie = fetchedMovie
         } catch {
             self.error = error as? MovieError ?? .unexpectedError(error: error)
             self.isErrorActive = true
         }
-
     }
-
+    
+    
+    func isFavorite(movieId: Int) -> Bool {
+        return favoriteData["\(movieId)"] ?? false
+    }
+    
+    func toggleFavorite(movieId: Int) {
+        favoriteData["\(movieId)"] = isFavorite(movieId: movieId)
+        favoriteData["\(movieId)"]?.toggle()
+        saveFavorites()
+    }
+    
+    func saveFavorites() {
+        UserDefaults.standard.setValue(favoriteData, forKey: keyFavorite)
+        UserDefaults.standard.synchronize()
+    }
+    
+    func loadFavorites() {
+        favoriteData = UserDefaults.standard.value(forKey: keyFavorite) as? [String: Bool] ?? [:]
+    }
 }

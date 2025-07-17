@@ -33,10 +33,8 @@ struct SearchMoviesView: View {
                             provider.currentPage <= provider.totalPages {
                             Color.clear
                                 .frame(height: 1)
-                                .onAppear {
-                                    Task {
-                                        await provider.searchMovie(query: searchText)
-                                    }
+                                .task {
+                                   await loadMovies()
                                 }
                         }
                     }
@@ -55,11 +53,6 @@ struct SearchMoviesView: View {
         }
         .navigationTitle("Search Movies")
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-        .onChange(of: searchText) {(_,newValue) in
-            Task {
-                await provider.searchMovie(query: newValue)
-            }
-        }
         .onChange(of: provider.isErrorActive) { _, newValue in
             if newValue {
                 Task {
@@ -70,11 +63,21 @@ struct SearchMoviesView: View {
                 }
             }
         }
-        .refreshable {
-            Task {
-                await provider.searchMovie(query: searchText)
+        .task(id: searchText) {
+            do {
+                try await Task.sleep(for: .seconds(0.8))
+                await loadMovies()
+            } catch {
+                print("Search was cancelled")
             }
         }
+        .refreshable {
+           await loadMovies()
+        }
+    }
+    
+    func loadMovies() async {
+        await provider.searchMovie(query: searchText)
     }
     
 }
@@ -84,9 +87,5 @@ struct SearchMoviesView: View {
     let provider = MovieProvider(client: client)
     let view = SearchMoviesView()
         .environment(provider)
-    Task {
-        await provider.searchMovie(query: "a")
-    }
-    
     return view
 }

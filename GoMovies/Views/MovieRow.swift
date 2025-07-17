@@ -9,6 +9,8 @@ import SwiftUI
 
 struct MovieRow: View {
     let movie: Movie
+    @Environment(MovieProvider.self) var provider
+    
     var body: some View {
         HStack(alignment: .top) {
             if let url = movie.posterURL {
@@ -55,11 +57,19 @@ struct MovieRow: View {
                     .foregroundStyle(.gray)
                 
             }
+            
+            Spacer()
+            
+            FavoriteButton(isFavorite: provider.isFavorite(movieId: movie.id)) {
+                provider.toggleFavorite(movieId: movie.id)
+            }
         }
         .padding(.vertical, 4)
     }
 }
 
 #Preview {
-    MovieRow(movie: Movie.staticData)
+    let provider = MovieProvider(client: MovieClient(downloader: TestDownloader()))
+    MovieRow(movie: Movie.example)
+        .environment(provider)
 }

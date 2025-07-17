@@ -74,6 +74,13 @@ struct MovieDetailView: View {
                 ErrorView(error: error)
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                FavoriteButton(isFavorite: provider.isFavorite(movieId: movieId)) {
+                    provider.toggleFavorite(movieId: movieId)
+                }
+            }
+        }
         .onChange(of: provider.isErrorActive) {_, newValue in
             if newValue {
                 Task {
@@ -100,11 +107,12 @@ struct MovieDetailView: View {
 }
 
 #Preview {
-    let client = MovieClient(downloader: TestDownloader())
+    let client = MovieClient(downloader: DetailTestDownloader())
     let provider = MovieProvider(client: client)
-    provider.selectedMovie = Movie.staticData
-    let view = MovieDetailView(movieId: Movie.staticData.id)
-        .environment(provider)
+
+    let view = MovieDetailView(movieId: Movie.example.id)
+                            .environment(provider)
+
     return view
 }
 
