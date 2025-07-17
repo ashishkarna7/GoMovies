@@ -23,31 +23,19 @@ struct MovieDetailView: View {
                             AsyncImage(url: url) { phase in
                                 switch phase {
                                 case .empty:
-                                    Rectangle()
-                                        .fill(.gray.opacity(0.3))
-                                        .frame(height: 300)
+                                    EmptyImageView()
                                         .overlay {
                                             ProgressView()
                                         }
                                 case .success(let image):
                                     image.resizable()
                                         .scaledToFill()
-                                case .failure:
-                                    Rectangle()
-                                        .fill(.gray.opacity(0.3))
-                                        .frame(height: 300)
-                                        .overlay {
-                                            Image(systemName: "photo.fill")
-                                                .font(.largeTitle)
-                                                .foregroundStyle(.white)
-                                        }
-                                @unknown default:
-                                    EmptyView()
+                                default:
+                                    EmptyImageView()
                                 }
                             }
                         } else {
-                            Image(systemName: "photo")
-                                .frame(height: 300)
+                            EmptyImageView()
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {

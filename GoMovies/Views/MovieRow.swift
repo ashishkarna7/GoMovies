@@ -17,10 +17,7 @@ struct MovieRow: View {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
-                        Rectangle()
-                            .fill(.gray.opacity(0.3))
-                            .frame(width: 60, height: 90)
-                            .cornerRadius(6)
+                        EmptySmallImageView()
                             .overlay {
                                 ProgressView()
                             }
@@ -31,23 +28,12 @@ struct MovieRow: View {
                             .frame(width: 60, height: 90)
                             .clipped()
                             .cornerRadius(6)
-                    case .failure:
-                        Rectangle()
-                            .fill(.gray.opacity(0.3))
-                            .frame(width: 60, height: 90)
-                            .cornerRadius(6)
-                            .overlay {
-                                Image(systemName: "photo.fill")
-                                    .font(.largeTitle)
-                                    .foregroundStyle(.white)
-                            }
-                    @unknown default:
-                        EmptyView()
+                    default:
+                        EmptySmallImageView()
                     }
                 }
             } else {
-                Image(systemName: "photo")
-                    .frame(width: 60, height: 90)
+                EmptySmallImageView()
             }
             VStack(alignment: .leading) {
                 Text(movie.title)

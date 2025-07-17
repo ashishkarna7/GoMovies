@@ -14,6 +14,8 @@ class MovieProvider {
     private(set) var movies: [Movie] = []
     private(set) var isSearching = false
     private(set) var isFetchingDetail = false
+    private(set) var favoriteMovies: [Movie] = []
+    
     var error: MovieError?
     var isErrorActive = false
     var selectedMovie: Movie?
@@ -30,6 +32,7 @@ class MovieProvider {
     
     init(client: MovieClient = MovieClient()) {
         self.client = client
+        loadFavorites() 
     }
     
     func searchMovie(query: String) async {
@@ -102,9 +105,11 @@ class MovieProvider {
     func saveFavorites() {
         UserDefaults.standard.setValue(favoriteData, forKey: keyFavorite)
         UserDefaults.standard.synchronize()
+        loadFavorites()
     }
     
     func loadFavorites() {
         favoriteData = UserDefaults.standard.value(forKey: keyFavorite) as? [String: Bool] ?? [:]
+        self.favoriteMovies = movies.filter({ isFavorite(movieId: $0.id) })
     }
 }

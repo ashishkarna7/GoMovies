@@ -9,13 +9,24 @@ import SwiftUI
 import SwiftData
 
 @main
-struct GoMoviesApp: App {    
+struct GoMoviesApp: App {
     @State var movieProvider = MovieProvider()
-
+    
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                SearchMoviesView()
+            
+            TabView {
+                NavigationStack {
+                    SearchMoviesView()
+                }.tabItem {
+                    Label("Home", systemImage: "house")
+                }
+                
+                NavigationStack {
+                    FavoritesView()
+                }.tabItem {
+                    Label("Favorites", systemImage: "star.fill")
+                }
             }
             .environment(movieProvider)
         }
