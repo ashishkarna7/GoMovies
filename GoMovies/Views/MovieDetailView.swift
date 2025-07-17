@@ -10,12 +10,11 @@ import SwiftUI
 struct MovieDetailView: View {
     
     @Environment(MovieProvider.self) var provider
-    @State private var isLoading = false
     @State var movieId: Int
     
     var body: some View {
         VStack {
-            if isLoading {
+            if provider.isFetchingDetail {
                 ProgressView("Loading...")
             } else if let error = provider.error {
                 ErrorView(error: error)
@@ -83,9 +82,7 @@ struct MovieDetailView: View {
     }
     
     func fetchMovieDetail() async {
-        isLoading = true
         await provider.getMovieDetail(movieId: movieId)
-        isLoading = false
     }
 }
 

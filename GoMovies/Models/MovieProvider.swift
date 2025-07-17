@@ -12,7 +12,8 @@ import Observation
 class MovieProvider {
     
     private(set) var movies: [Movie] = []
-//    var isLoading = false
+    private(set) var isSearching = false
+    private(set) var isFetchingDetail = false
     private(set) var error: MovieError?
     private(set) var selectedMovie: Movie?
     
@@ -37,8 +38,12 @@ class MovieProvider {
             currentQuery = query
         }
         
-        guard currentPage <= totalPages else { return }
+        guard !isSearching, currentPage <= totalPages else { return }
     
+        isSearching = true
+        defer {
+            isSearching = false
+        }
         error = nil
         
         do {
@@ -49,6 +54,7 @@ class MovieProvider {
         } catch {
             self.error = error as? MovieError ?? .unexpectedError(error: error)
         }
+        
     }
     
     func reset() {
@@ -64,6 +70,11 @@ class MovieProvider {
     func getMovieDetail(movieId: Int) async {
         self.selectedMovie = movies.first(where: {$0.id == movieId })
         guard let selectedMovie else { return }
+        
+        isFetchingDetail = true
+        defer {
+            isFetchingDetail = false
+        }
         error = nil
         
         do {
@@ -72,6 +83,7 @@ class MovieProvider {
         } catch {
             self.error = error as? MovieError ?? .unexpectedError(error: error)
         }
+
     }
 
 }

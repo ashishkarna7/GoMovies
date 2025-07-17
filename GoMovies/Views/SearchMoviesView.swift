@@ -12,11 +12,10 @@ struct SearchMoviesView: View {
     @State private var searchText = ""
     
     @State private var selection: Set<String> = []
-    @State private var isLoading = false
     
     var body: some View {
         VStack {
-            if isLoading {
+            if provider.isSearching {
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, alignment: .center)
             } else if let error = provider.error {
@@ -48,12 +47,6 @@ struct SearchMoviesView: View {
                 await provider.searchMovie(query: searchText)
             }
         }
-    }
-    
-    func fetchMovies() async {
-        isLoading = true
-        await provider.searchMovie(query: searchText)
-        isLoading = false
     }
 }
 
