@@ -56,19 +56,9 @@ A native iOS application to search and manage favorite movies, built using **Swi
 
 * Limited data storage capacity with UserDefaults.
 * No image caching solution implemented yet.
-    
-## Demo    
- - Search Page
-    <img src="https://github.com/ashishkarna7/GoMovies/blob/main/GoMovies/Example-Gif/search.gif" alt="search" width="300" />
- 
- - Detail Page and Pagination in search page
-   <img src="https://github.com/ashishkarna7/GoMovies/blob/main/GoMovies/Example-Gif/detail.gif" alt="detail" width="300" />
- 
- - Favorite Page   
-    <img src="https://github.com/ashishkarna7/GoMovies/blob/main/GoMovies/Example-Gif/favorite.gif" alt="favorite" width="300" />
- 
- - Data persistence during offline mode
-    <img src="https://github.com/ashishkarna7/GoMovies/blob/main/GoMovies/Example-Gif/datapersistance.gif" alt="datapersistence" width="300" />
- 
-    
-    
+
+## Author
+
+**Ashish Karna**
+Senior iOS Engineer
+[LinkedIn](https://www.linkedin.com/in/ashish-karna-177b7187/) | [GitHub](https://github.com/ashishkarna7)

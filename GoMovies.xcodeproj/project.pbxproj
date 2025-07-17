@@ -52,6 +52,11 @@
 			path = GoMoviesUITests;
 			sourceTree = "<group>";
 		};
+		189C2AA12E297C8200613364 /* Example-Gif */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Example-Gif";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +92,7 @@
 				1833B8242E2412EB0018764F /* GoMovies */,
 				1833B8342E2412ED0018764F /* GoMoviesTests */,
 				1833B83E2E2412ED0018764F /* GoMoviesUITests */,
+				189C2AA12E297C8200613364 /* Example-Gif */,
 				1833B8232E2412EB0018764F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -118,6 +124,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				1833B8242E2412EB0018764F /* GoMovies */,
+				189C2AA12E297C8200613364 /* Example-Gif */,
 			);
 			name = GoMovies;
 			packageProductDependencies = (
