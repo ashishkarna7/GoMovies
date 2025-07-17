@@ -61,4 +61,4 @@ A native iOS application to search and manage favorite movies, built using **Swi
 
 **Ashish Karna**
 Senior iOS Engineer
-[LinkedIn](https://linkedin.com/in/ashishkarna7) | [GitHub](https://github.com/ashishkarna7)
+[LinkedIn](https://www.linkedin.com/in/ashish-karna-177b7187/) | [GitHub](https://github.com/ashishkarna7)
