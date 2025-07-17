@@ -10,29 +10,26 @@ import SwiftData
 
 @main
 struct GoMoviesApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-    
     @State var movieProvider = MovieProvider()
-
+    
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                SearchMoviesView()
+            
+            TabView {
+                NavigationStack {
+                    SearchMoviesView()
+                }.tabItem {
+                    Label("Home", systemImage: "house")
+                }
+                
+                NavigationStack {
+                    FavoritesView()
+                }.tabItem {
+                    Label("Favorites", systemImage: "star.fill")
+                }
             }
             .environment(movieProvider)
         }
-        .modelContainer(sharedModelContainer)
         
     }
 }

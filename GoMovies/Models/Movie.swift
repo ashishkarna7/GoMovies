@@ -18,14 +18,7 @@ struct Movie: Identifiable, Decodable {
     let releaseDate: String?
     private let posterPath: String?
     let overview: String?
-    
-//    var date: Date {
-////        guard let releaseDate else { return nil }
-//        let formatter = DateFormatter()
-//        formatter.dateFormat = "yyyy-MM-dd"
-//        return formatter.date(from: releaseDate) ?? Date()
-//    }
-    
+
     var posterURL: URL? {
         guard let posterPath else { return nil }
         let url = URL(string: AppConstant.imageBaseURL + "w200" + posterPath)
@@ -40,7 +33,7 @@ struct Movie: Identifiable, Decodable {
 }
 
 extension Movie {
-    static let staticData = Movie(id: 0,
+    static let example = Movie(id: 1,
                                   title: "Interstellar",
                                   releaseDate: "2014-11-05",
                                   posterPath: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",

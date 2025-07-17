@@ -15,43 +15,71 @@ struct SearchMoviesView: View {
     
     var body: some View {
         VStack {
-            if provider.isLoading {
+            if provider.isSearching, provider.movies.isEmpty {
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, alignment: .center)
-            } else if let error = provider.error {
-                ErrorView(error: error)
             } else {
                 List(selection: $selection) {
                     Section("Movies") {
                         ForEach(provider.movies) { movie in
                             NavigationLink(destination: {
-                                MovieDetailView(provider: MovieDetailProvider(movieId: movie.id))
+                                MovieDetailView(movieId: movie.id)
                             }, label: {
                                 MovieRow(movie: movie)
                             })
+                        }
+                        
+                        if !provider.movies.isEmpty,
+                            provider.currentPage <= provider.totalPages {
+                            Color.clear
+                                .frame(height: 1)
+                                .task {
+                                   await loadMovies()
+                                }
                         }
                     }
                 }
             }
         }
+        .overlay(alignment: .bottom) {
+            if let error = provider.error {
+                ErrorView(error: error)
+            } else if provider.isSearching, !provider.movies.isEmpty {
+                ProgressView()
+                    .padding()
+                    .background(.thinMaterial, in: Capsule())
+                    .padding(.bottom)
+            }
+        }
         .navigationTitle("Search Movies")
-//        .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-        .onChange(of: searchText) {(_,newValue) in
-            Task {
-                await provider.searchMovie(query: newValue)
+        .onChange(of: provider.isErrorActive) { _, newValue in
+            if newValue {
+                Task {
+                    try await Task.sleep(for: .seconds(1))
+                    withAnimation {
+                        provider.clearError()
+                    }
+                }
+            }
+        }
+        .task(id: searchText) {
+            do {
+                try await Task.sleep(for: .seconds(0.8))
+                await loadMovies()
+            } catch {
+                print("Search was cancelled")
             }
         }
         .refreshable {
-            Task {
-                await provider.searchMovie(query: searchText)
-            }
+           await loadMovies(isRefresh: true)
         }
     }
     
-    func fetchMovies() async {
-         await provider.searchMovie(query: "a")
+    func loadMovies(isRefresh: Bool = false) async {
+        await provider.searchMovie(query: searchText, isRefresh: isRefresh)
     }
+    
 }
 
 #Preview {
@@ -59,9 +87,5 @@ struct SearchMoviesView: View {
     let provider = MovieProvider(client: client)
     let view = SearchMoviesView()
         .environment(provider)
-    Task {
-        await provider.searchMovie(query: "a")
-    }
-    
     return view
 }

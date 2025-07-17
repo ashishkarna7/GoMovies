@@ -9,46 +9,33 @@ import SwiftUI
 
 struct MovieDetailView: View {
     
-    @State var provider: MovieDetailProvider
+    @Environment(MovieProvider.self) var provider
+    @State var movieId: Int
     
     var body: some View {
         VStack {
-            if provider.isLoading {
+            if provider.isFetchingDetail {
                 ProgressView("Loading...")
-            } else if let error = provider.error {
-                ErrorView(error: error)
-            } else if let movie = provider.movie {
+            } else if let movie = provider.selectedMovie {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         if let url = movie.posterDetailURL {
                             AsyncImage(url: url) { phase in
                                 switch phase {
                                 case .empty:
-                                    Rectangle()
-                                        .fill(.gray.opacity(0.3))
-                                        .frame(height: 300)
+                                    EmptyImageView()
                                         .overlay {
                                             ProgressView()
                                         }
                                 case .success(let image):
                                     image.resizable()
                                         .scaledToFill()
-                                case .failure:
-                                    Rectangle()
-                                        .fill(.gray.opacity(0.3))
-                                        .frame(height: 300)
-                                        .overlay {
-                                            Image(systemName: "photo.fill")
-                                                .font(.largeTitle)
-                                                .foregroundStyle(.white)
-                                        }
-                                @unknown default:
-                                    EmptyView()
+                                default:
+                                    EmptyImageView()
                                 }
                             }
                         } else {
-                            Image(systemName: "photo")
-                                .frame(height: 300)
+                            EmptyImageView()
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -70,26 +57,50 @@ struct MovieDetailView: View {
                 }
             }
         }
+        .overlay(alignment: .bottom) {
+            if let error = provider.error {
+                ErrorView(error: error)
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                FavoriteButton(isFavorite: provider.isFavorite(movieId: movieId)) {
+                    provider.toggleFavorite(movieId: movieId)
+                }
+            }
+        }
+        .onChange(of: provider.isErrorActive) {_, newValue in
+            if newValue {
+                Task {
+                    try? await Task.sleep(for: .seconds(1))
+                    withAnimation {
+                        provider.clearError()
+                    }
+                }
+            }
+        }
         .navigationTitle("Movie Details")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            await provider.load()
+            await fetchMovieDetail()
         }
         .refreshable {
-            await provider.load()
+            await fetchMovieDetail()
         }
+    }
+    
+    func fetchMovieDetail() async {
+        await provider.getMovieDetail(movieId: movieId)
     }
 }
 
 #Preview {
-    let client = MovieClient(downloader: TestDownloader())
-    let provider = MovieDetailProvider(client: client, movieId: Movie.staticData.id)
-    let view = MovieDetailView(provider: provider)
-        
-    Task {
-        await provider.load()
-    }
-    
+    let client = MovieClient(downloader: DetailTestDownloader())
+    let provider = MovieProvider(client: client)
+
+    let view = MovieDetailView(movieId: Movie.example.id)
+                            .environment(provider)
+
     return view
 }
 

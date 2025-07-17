@@ -11,14 +11,15 @@ struct ErrorView: View {
     var error: MovieError
     
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.largeTitle)
-            
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
             Text(error.errorDescription ?? "")
-                .multilineTextAlignment(.center)
         }
+        .font(.callout)
+        .foregroundStyle(.white)
         .padding()
+        .background(.red.opacity(0.9), in: Capsule())
+        .padding(.bottom)
     }
 }
 

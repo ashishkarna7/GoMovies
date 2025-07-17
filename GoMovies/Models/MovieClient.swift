@@ -13,24 +13,25 @@ actor MovieClient {
     
     private let downloader: any HttpDataDownloader
     private let baseURL = URL(string: "https://api.themoviedb.org/3/")!
-
+    private let apiKey = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwN2VhYzc0YjhkNWJjYTFjMTg3MWYzZGZlZjZjNWE2NiIsIm5iZiI6MTc1MjQyNDkyNC4xOTM5OTk4LCJzdWIiOiI2ODczZTFkY2FhOGJjMjAwNDFiYTM5NjciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.AetAhpH9-RMPVqEnMyiDhUrkJzMEyX2dUOMTqo-qgps"
+//    private let apiKey = ""
     private var decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return decoder
     }()
     
-    var searchResult: MovieSearchResult {
-        get async throws {
-            let data = try await downloader.httpData(from: baseURL)
-            
-            do {
-                let movieSearchResult = try decoder.decode(MovieSearchResult.self, from: data)
-                return movieSearchResult
-            } catch {
-                throw MovieError.decodingError
-            }
-        }
+    private let userDefaults = UserDefaults.standard
+    
+    private let keyLastUsedQuery = "key_last_search_query"
+    
+    private func loadLastSearchKey() -> String {
+        userDefaults.value(forKey: keyLastUsedQuery) as? String ?? ""
+    }
+    
+    private func saveSearchKey(query: String) {
+        userDefaults.set(query, forKey: keyLastUsedQuery)
+        userDefaults.synchronize()
     }
     
     init(downloader: any HttpDataDownloader = URLSession.shared) {
@@ -38,8 +39,12 @@ actor MovieClient {
     }
     
     func searchMovie(query: String, page: Int) async throws -> MovieSearchResult {
+        var tempQuery = query
+        if query.isEmpty {
+            tempQuery = loadLastSearchKey()
+        }
         let url = buildUrl(path: "search/movie",
-                                 queryItems: [.init(name: "query", value: query),
+                                 queryItems: [.init(name: "query", value: tempQuery),
                                               .init(name: "include_adult", value: "false"),
                                               .init(name: "language", value: "en-US"),
                                               .init(name: "page", value: "\(page)")])
@@ -47,11 +52,12 @@ actor MovieClient {
         guard let url else {
             throw MovieError.invalidRequest
         }
-
-        let data = try await downloader.httpData(from: url)
+        
+        let data = try await downloader.httpData(from: getUrlRequest(from: url))
         
         do {
             let movieSearchResult = try decoder.decode(MovieSearchResult.self, from: data)
+            saveSearchKey(query: tempQuery)
             return movieSearchResult
         } catch {
             throw MovieError.decodingError
@@ -71,7 +77,7 @@ actor MovieClient {
         }
         
         let task = Task<Movie, Error> {
-            let data = try await downloader.httpData(from: url)
+            let data = try await downloader.httpData(from: getUrlRequest(from: url))
             do {
                 let movie = try decoder.decode(Movie.self, from: data)
                 movieCache[url] = .ready(movie)
@@ -90,5 +96,11 @@ actor MovieClient {
         var urlComponent = URLComponents(url: baseURL.appending(path: path), resolvingAgainstBaseURL: false)
         urlComponent?.queryItems = queryItems
        return urlComponent?.url
+    }
+    
+    private func getUrlRequest(from url: URL) -> URLRequest {
+        var urlRequest = URLRequest(url: url)
+        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        return urlRequest
     }
 }
