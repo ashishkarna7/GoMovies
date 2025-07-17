@@ -11,14 +11,14 @@ import Observation
 @Observable
 class MovieProvider {
     
-    var movies: [Movie] = []
-    var isLoading = false
-    var error: MovieError?
-    var selectedMovie: Movie?
+    private(set) var movies: [Movie] = []
+//    var isLoading = false
+    private(set) var error: MovieError?
+    private(set) var selectedMovie: Movie?
     
-    var currentQuery: String = ""
-    var currentPage: Int = 1
-    var totalPages: Int = 1
+    private var currentQuery: String = ""
+    private var currentPage: Int = 1
+    private var totalPages: Int = 1
     
     private let client: MovieClient
     
@@ -37,9 +37,8 @@ class MovieProvider {
             currentQuery = query
         }
         
-        guard !isLoading, currentPage <= totalPages else { return }
-        
-        isLoading = true
+        guard currentPage <= totalPages else { return }
+    
         error = nil
         
         do {
@@ -50,7 +49,6 @@ class MovieProvider {
         } catch {
             self.error = error as? MovieError ?? .unexpectedError(error: error)
         }
-        isLoading = false
     }
     
     func reset() {
@@ -58,4 +56,22 @@ class MovieProvider {
         currentPage = 1
         totalPages = 1
     }
+    
+    func setSelectedMovie(movie: Movie) {
+        self.selectedMovie = movie
+    }
+    
+    func getMovieDetail(movieId: Int) async {
+        self.selectedMovie = movies.first(where: {$0.id == movieId })
+        guard let selectedMovie else { return }
+        error = nil
+        
+        do {
+            let fetchedMovie = try await client.movie(id: selectedMovie.id)
+            self.selectedMovie = fetchedMovie
+        } catch {
+            self.error = error as? MovieError ?? .unexpectedError(error: error)
+        }
+    }
+
 }

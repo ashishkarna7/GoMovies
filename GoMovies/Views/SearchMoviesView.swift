@@ -12,10 +12,11 @@ struct SearchMoviesView: View {
     @State private var searchText = ""
     
     @State private var selection: Set<String> = []
+    @State private var isLoading = false
     
     var body: some View {
         VStack {
-            if provider.isLoading {
+            if isLoading {
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, alignment: .center)
             } else if let error = provider.error {
@@ -25,7 +26,8 @@ struct SearchMoviesView: View {
                     Section("Movies") {
                         ForEach(provider.movies) { movie in
                             NavigationLink(destination: {
-                                MovieDetailView(provider: MovieDetailProvider(movieId: movie.id))
+                                MovieDetailView(movieId: movie.id)
+                                    .environment(provider)
                             }, label: {
                                 MovieRow(movie: movie)
                             })
@@ -35,7 +37,6 @@ struct SearchMoviesView: View {
             }
         }
         .navigationTitle("Search Movies")
-//        .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
         .onChange(of: searchText) {(_,newValue) in
             Task {
@@ -50,7 +51,9 @@ struct SearchMoviesView: View {
     }
     
     func fetchMovies() async {
-         await provider.searchMovie(query: "a")
+        isLoading = true
+        await provider.searchMovie(query: searchText)
+        isLoading = false
     }
 }
 
