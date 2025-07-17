@@ -35,7 +35,10 @@ class MovieProvider {
         loadFavorites() 
     }
     
-    func searchMovie(query: String) async {
+    func searchMovie(query: String, isRefresh: Bool) async {
+        if isRefresh {
+            currentPage = 1
+        }
         
         if currentQuery != query {
             reset()

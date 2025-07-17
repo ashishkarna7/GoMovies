@@ -72,12 +72,12 @@ struct SearchMoviesView: View {
             }
         }
         .refreshable {
-           await loadMovies()
+           await loadMovies(isRefresh: true)
         }
     }
     
-    func loadMovies() async {
-        await provider.searchMovie(query: searchText)
+    func loadMovies(isRefresh: Bool = false) async {
+        await provider.searchMovie(query: searchText, isRefresh: isRefresh)
     }
     
 }
