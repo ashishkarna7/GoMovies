@@ -5,14 +5,15 @@ A native iOS application to search and manage favorite movies, built using **Swi
  - Search movies with pagination and pull-to-refresh
  - Toggle favorite option
  - View detailed movie information
- - Offline caching via NSCache and UserDefaults
+ - Offline caching via SwiftData and UserDefaults
+ - In memory caching of image via NSCache
  - Error handling for various scenarios
  - Simple and clean UI tailored for this assignment
  
 ## Requirements
  - Xcode: Version 16.4 or Later
  - Swift Language: 5
- - iOS deployment target: 17.6 or Later
+ - iOS deployment target: 18 or Later
  
  
 ## Getting Started
@@ -36,26 +37,25 @@ A native iOS application to search and manage favorite movies, built using **Swi
 * **SwiftUI** used for building the UI declaratively.
 * **@Observable** state shared via `Environment` across all views.
 * **Debounced** search to reduce unnecessary API calls.
-* **NSCache** used for in-memory data caching.
+* **SwiftData** used for persisting data
+* **NSCache** used for in-memory data caching (especially image thumbnail).
 * **UserDefaults** used to persist favorite movie IDs.
+* **PreviewModifier** for previewing the sample swiftdata model
 
 ## Challenges
 
 * Toggling favorite state from multiple views while keeping a single source of truth.
-* Avoiding repeated network calls during active search.
+* Avoiding duplicate network calls for image thumnail loading in list while scrolling.
 * Managing data persistence under platform limitations.
 
 ## Solutions
 
-* Injected a shared `MovieProvider` into the SwiftUI environment.
-* Added a debounce mechanism during search input.
-* Used NSCache to reduce API requests and speed up loading.
-* UserDefaults used for lightweight, persistent storage of favorites.
-
-## Limitations
-
-* Limited data storage capacity with UserDefaults.
-* No image caching solution implemented yet.
+* Injected a shared **FavoritesManager** into the SwiftUI environment.
+* Added a **debounce** mechanism during search input.
+* Used **SwiftData** to persist the latest fetched search results
+* Used **NSCache** for caching image
+* Used **Task** to avoid duplicate network calls for image loading
+* Used **UserDefaults** used for lightweight, persistent storage of favorite ids.
 
 ## Author
 

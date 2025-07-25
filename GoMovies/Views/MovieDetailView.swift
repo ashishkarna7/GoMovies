@@ -6,79 +6,49 @@
 //
 
 import SwiftUI
+import _SwiftData_SwiftUI
 
 struct MovieDetailView: View {
+    @Environment(FavoritesManager.self) var favoriteManager
     
-    @Environment(MovieProvider.self) var provider
+    @State private var viewModel = MovieDetailViewModel()
     @State var movieId: Int
+    
+    @Query(sort: \Movie.title) var savedMovies: [Movie]
+    @Environment(\.modelContext) var context
     
     var body: some View {
         VStack {
-            if provider.isFetchingDetail {
+            if viewModel.isLoading, viewModel.movieDetail == nil {
                 ProgressView("Loading...")
-            } else if let movie = provider.selectedMovie {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        if let url = movie.posterDetailURL {
-                            AsyncImage(url: url) { phase in
-                                switch phase {
-                                case .empty:
-                                    EmptyImageView()
-                                        .overlay {
-                                            ProgressView()
-                                        }
-                                case .success(let image):
-                                    image.resizable()
-                                        .scaledToFill()
-                                default:
-                                    EmptyImageView()
-                                }
-                            }
-                        } else {
-                            EmptyImageView()
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(movie.title)
-                                .font(.title)
-                                .bold()
-                            
-                            Text("Released: \(movie.releaseDate ?? "")")
-                                .font(.subheadline)
-                                .foregroundStyle(.gray)
-                            
-                            Divider()
-                            
-                            Text(movie.overview ?? "No overview available")
-                                .font(.body)
-                        }
-                        .padding(.horizontal)
-                    }
-                }
-            }
-        }
-        .overlay(alignment: .bottom) {
-            if let error = provider.error {
-                ErrorView(error: error)
+            } else if let movie = getMovie(movieId: movieId) {
+                detailView(movie: movie)
             }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                FavoriteButton(isFavorite: provider.isFavorite(movieId: movieId)) {
-                    provider.toggleFavorite(movieId: movieId)
-                }
-            }
-        }
-        .onChange(of: provider.isErrorActive) {_, newValue in
-            if newValue {
-                Task {
-                    try? await Task.sleep(for: .seconds(1))
-                    withAnimation {
-                        provider.clearError()
+                FavoriteButton(isFavorite: favoriteManager.isFavorite(movieId: movieId)) {
+                    favoriteManager.toggleFavorite(movieId: movieId)
+                    if favoriteManager.isFavorite(movieId: movieId) {
+                        if let detail = viewModel.movieDetail {
+                            if let _ = savedMovies.first(where: { $0.movieId == movieId}) {
+                                // do nothing
+                            } else{
+                                context.insert(detail.toMovie()) // add data in in-memory only
+                                try? context.save() // inorder to persist
+                            }
+                        }
                     }
                 }
             }
         }
+        .alert("Error", isPresented: .constant(viewModel.error != nil), actions: {
+            Button("Ok", role: .cancel) {
+                viewModel.error = nil
+            }
+        }, message: {
+            Text(viewModel.error?.errorDescription ?? "")
+        })
         .navigationTitle("Movie Details")
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -89,19 +59,101 @@ struct MovieDetailView: View {
         }
     }
     
+    @ViewBuilder
+    func detailView(movie: MovieDetail) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                if let url = movie.smallPosterUrl ?? movie.posterDetailURL {
+                    CachedAsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            EmptyImageView()
+                                .overlay {
+                                    ProgressView()
+                                }
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(height: 500)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .background(.gray.opacity(0.3))
+                        default:
+                            EmptyImageView()
+                        }
+                    }
+                } else {
+                    EmptyImageView()
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(movie.title)
+                        .font(.title)
+                        .bold()
+                    
+                    if let tagline = movie.tagline, !tagline.isEmpty {
+                        Text("\(tagline)")
+                            .italic()
+                            .foregroundStyle(.secondary)
+                    }
+                
+                    Text("Released: \(movie.releaseDate ?? "")")
+                        .font(.subheadline)
+                        .foregroundStyle(.gray)
+                    
+                    if let runTime = movie.runTime {
+                        Text("Runtime: \(runTime) min")
+                            .font(.subheadline)
+                    }
+                    
+                    if let voteAverage = movie.voteAverage {
+                        Text("Rating : \(String(format: "%.1f", voteAverage))/10")
+                            .font(.subheadline)
+                    }
+                    
+                    if let genre = movie.genre {
+                        Text("Genre: \(genre.map(\.name).joined(separator: ","))")
+                            .font(.subheadline)
+                    }
+                    
+                    if let homePage = movie.homePage, let url = URL(string: homePage) {
+                        Link("Visit home page", destination: url)
+                            .font(.subheadline)
+                            .foregroundStyle(.blue)
+                            .underline()
+                    }
+                    
+                    Divider()
+                    
+                    Text("Overview")
+                        .font(.headline)
+                    
+                    Text(movie.overview ?? "No overview available")
+                        .font(.body)
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+    
     func fetchMovieDetail() async {
-        await provider.getMovieDetail(movieId: movieId)
+        await viewModel.getMovieDetail(movieId: movieId)
+    }
+    
+    func getMovie(movieId: Int) -> MovieDetail? {
+        if let detail = viewModel.movieDetail {
+            return detail
+        } else if let item = savedMovies.first(where: { $0.movieId == movieId}) {
+            return item.toMovieDetail()
+        }
+        return nil
     }
 }
 
-#Preview {
-    let client = MovieClient(downloader: DetailTestDownloader())
-    let provider = MovieProvider(client: client)
-
-    let view = MovieDetailView(movieId: Movie.example.id)
-                            .environment(provider)
-
-    return view
+#Preview(traits: .movieSampleData) {
+    @Previewable @Query(sort: \Movie.title) var movies: [Movie]
+    MovieDetailView(movieId: movies[0].movieId)
+        .environment(FavoritesManager())
 }
-
 

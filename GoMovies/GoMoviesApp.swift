@@ -10,11 +10,10 @@ import SwiftData
 
 @main
 struct GoMoviesApp: App {
-    @State var movieProvider = MovieProvider()
-    
+    @State var favoriteManger = FavoritesManager()
+
     var body: some Scene {
         WindowGroup {
-            
             TabView {
                 NavigationStack {
                     SearchMoviesView()
@@ -28,8 +27,8 @@ struct GoMoviesApp: App {
                     Label("Favorites", systemImage: "star.fill")
                 }
             }
-            .environment(movieProvider)
+            .environment(favoriteManger)
+            .modelContainer(for: Movie.self)
         }
-        
     }
 }
