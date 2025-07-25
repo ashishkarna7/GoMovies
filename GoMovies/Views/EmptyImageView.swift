@@ -11,7 +11,7 @@ struct EmptyImageView: View {
     var body: some View {
         Rectangle()
             .fill(.gray.opacity(0.3))
-            .frame(height: 300)
+            .frame(height: 500)
             .overlay {
                 Image(systemName: "photo.fill")
                     .font(.largeTitle)

@@ -6,86 +6,118 @@
 //
 
 import SwiftUI
+import _SwiftData_SwiftUI
 
 struct SearchMoviesView: View {
-    @Environment(MovieProvider.self) var provider
+    @State var viewModel = SearchMovieViewModel()
     @State private var searchText = ""
     
-    @State private var selection: Set<String> = []
+    @Query(sort: \Movie.title) var savedMovies: [Movie]
     
+    @Environment(\.modelContext) private var context
+    
+    @Environment(FavoritesManager.self) var favoriteManger
+
     var body: some View {
-        VStack {
-            if provider.isSearching, provider.movies.isEmpty {
-                ProgressView("Loading...")
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else {
-                List(selection: $selection) {
-                    Section("Movies") {
-                        ForEach(provider.movies) { movie in
-                            NavigationLink(destination: {
-                                MovieDetailView(movieId: movie.id)
-                            }, label: {
-                                MovieRow(movie: movie)
-                            })
-                        }
-                        
-                        if !provider.movies.isEmpty,
-                            provider.currentPage <= provider.totalPages {
-                            Color.clear
-                                .frame(height: 1)
-                                .task {
-                                   await loadMovies()
-                                }
-                        }
-                    }
-                }
-            }
-        }
-        .overlay(alignment: .bottom) {
-            if let error = provider.error {
-                ErrorView(error: error)
-            } else if provider.isSearching, !provider.movies.isEmpty {
-                ProgressView()
+        Group {
+            if viewModel.isLoading {
+                ProgressView("Searching..")
+                    .frame(maxWidth: .infinity)
                     .padding()
-                    .background(.thinMaterial, in: Capsule())
-                    .padding(.bottom)
+            } else if viewModel.movies.isEmpty, !savedMovies.isEmpty {
+                listContent(movies: savedMovies)
+            }else {
+                listContent(movies: viewModel.movies)
             }
         }
         .navigationTitle("Search Movies")
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-        .onChange(of: provider.isErrorActive) { _, newValue in
-            if newValue {
-                Task {
-                    try await Task.sleep(for: .seconds(1))
-                    withAnimation {
-                        provider.clearError()
-                    }
-                }
-            }
-        }
+        .alert("Error", isPresented: .constant(viewModel.error != nil), actions: {
+            Button("Ok", role: .cancel, action: {
+                viewModel.error = nil
+            })
+        }, message: {
+            Text(viewModel.error?.errorDescription ?? "")
+        })
         .task(id: searchText) {
+            guard !searchText.isEmpty else { return }
             do {
-                try await Task.sleep(for: .seconds(0.8))
+                try await Task.sleep(for: .seconds(0.5))
                 await loadMovies()
             } catch {
                 print("Search was cancelled")
             }
         }
         .refreshable {
-           await loadMovies(isRefresh: true)
+            viewModel.reset()
+            await loadMovies()
         }
     }
     
-    func loadMovies(isRefresh: Bool = false) async {
-        await provider.searchMovie(query: searchText, isRefresh: isRefresh)
+    @ViewBuilder
+    func listContent(movies: [Movie]) -> some View {
+        List {
+            Section(content: {
+                ForEach(movies, id: \.persistentModelID) { movie in
+                    NavigationLink(destination: MovieDetailView(movieId: movie.movieId)) {
+                        MovieRow(movie: movie)
+                    }
+                    .onAppear {
+                        Task {
+                            await loadNextPage(movie: movie)
+                        }
+                        
+                    }
+                }
+            }, header: {
+                Text("Search results")
+                    .font(.headline)
+                    .textCase(nil)
+                    .listRowInsets(EdgeInsets())
+            }, footer: {
+                if !viewModel.movies.isEmpty, viewModel.isFetchingNextPage {
+                    ProgressView("Loading More..")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+            })
+        }
+    }
+    
+    func loadNextPage(movie: Movie) async {
+        if movie.movieId == viewModel.movies.last?.movieId {
+            await loadMovies()
+        }
+    }
+    
+    private func saveMovies() {
+        if viewModel.currentPage == 2 {
+            // reset
+            for movie in savedMovies {
+                if !favoriteManger.isFavorite(movieId: movie.movieId) {
+                    context.delete(movie)
+                }
+            }
+            
+            // add newly fetch data
+            viewModel.movies.forEach({ context.insert($0)})
+            
+            do {
+                try context.save() 
+            } catch {
+                print("Failed to save movies: \(error)")
+            }
+        }
+    }
+    
+    func loadMovies() async {
+        await viewModel.searchMovie(query: searchText)
+        saveMovies()
     }
     
 }
 
-#Preview {
-    let client = MovieClient(downloader: TestDownloader())
-    let provider = MovieProvider(client: client)
-    let view = SearchMoviesView()
-        .environment(provider)
-    return view
+#Preview(traits: .movieSampleData) {
+    SearchMoviesView()
+        .environment(FavoritesManager())
 }
